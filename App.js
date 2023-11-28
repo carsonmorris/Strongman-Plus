@@ -5,12 +5,12 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleWorkoutsPress = () => {
-    // Navigate to the Workouts screen
+    // Navigate to the Workouts screen TODO
     console.log('Navigate to Workouts screen');
   };
 
   const handleBodyStatsPress = () => {
-    // Navigate to the Body Stats screen
+    // Navigate to the Body Stats screen TODO
     console.log('Navigate to Body Stats screen');
   };
 
