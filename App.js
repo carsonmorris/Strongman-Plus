@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
-import { ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 
 // Workouts overlay component
 const WorkoutsOverlay = ({ onClose }) => {
@@ -56,13 +55,101 @@ const WorkoutsOverlay = ({ onClose }) => {
 
 // BodyStats overlay component
 const BodyStatsOverlay = ({ onClose }) => {
+  const [columns, setColumns] = useState([{ id: 1, name: 'Date' }]);
+  const [rows, setRows] = useState([['']]); // Initialize with an empty cell
+  const [newColumnName, setNewColumnName] = useState('');
+  const [showAddButton, setShowAddButton] = useState(false);
+
+  const addColumn = () => {
+    if (newColumnName.trim() !== '') {
+      const newColumn = { id: Date.now(), name: newColumnName };
+      setColumns([...columns, newColumn]);
+
+      // Add a new cell for each existing row
+      const updatedRows = rows.map((row) => [...row, '']);
+      setRows(updatedRows);
+
+      // Clear the input field
+      setNewColumnName('');
+    }
+  };
+
+  const addRow = () => {
+    const newRow = columns.map(() => '');
+    setRows([...rows, newRow]);
+  };
+
   return (
     <View style={styles.overlayContainer}>
-      <Text style={styles.title}>Body Stats</Text>
-      {/* Add your Body Stats content here */}
-      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+      <TouchableOpacity style={styles.closeButtonTopRight} onPress={onClose}>
         <Text style={styles.buttonText}>Close</Text>
       </TouchableOpacity>
+
+      <Text style={styles.title}>Body Stats</Text>
+
+      <ScrollView horizontal={true} style={styles.scrollView}>
+        <View>
+          {/* Table Header */}
+          <View style={styles.tableRow}>
+            {columns.map((column, columnIndex) => (
+              <View key={column.id} style={styles.tableHeaderCell}>
+                <TextInput
+                  style={styles.columnHeaderInput}
+                  value={column.name}
+                  onChangeText={(text) => {
+                    const updatedColumns = [...columns];
+                    updatedColumns[columnIndex].name = text;
+                    setColumns(updatedColumns);
+                  }}
+                  placeholder={`Column ${columnIndex + 1}`}
+                />
+              </View>
+            ))}
+          </View>
+
+          {/* Table Body */}
+          {rows.map((row, rowIndex) => (
+            <View key={rowIndex} style={styles.tableRow}>
+              {row.map((cell, cellIndex) => (
+                <View key={cellIndex} style={styles.tableCell}>
+                  {rowIndex === rows.length - 1 && showAddButton ? (
+                    <TextInput
+                      style={styles.tableInput}
+                      value={cell}
+                      onChangeText={(text) => {
+                        const updatedRows = [...rows];
+                        updatedRows[rowIndex][cellIndex] = text;
+                        setRows(updatedRows);
+                      }}
+                      placeholder={`Enter value for ${columns[cellIndex].name}`}
+                    />
+                  ) : (
+                    <Text>{cell}</Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          ))}
+
+          {/* Add Row Button */}
+          <TouchableOpacity style={styles.addRowButton} onPress={addRow}>
+            <Text style={styles.buttonText}>+ Add Row</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* Add Column Button */}
+      <View style={styles.addContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Column Name"
+          onChangeText={(text) => setNewColumnName(text)}
+          value={newColumnName}
+        />
+        <TouchableOpacity style={styles.addColumnButton} onPress={addColumn}>
+          <Text style={styles.buttonText}>+ Add Column</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -226,7 +313,58 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontStyle: 'italic',
   },
-  scrollViewContainer: {
-    flexGrow: 1,
+  scrollView: {
+    maxHeight: 600,
+    flexGrow: 0,
+  },
+
+  tableRow: {
+    flexDirection: "row",
+  },
+
+  tableHeaderCell: {
+    flex: 1,
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "#f2f2f2",
+    minWidth: 100, // Adjust the minWidth as needed
+  },
+
+  tableHeaderText: {
+    fontWeight: "bold",
+    flex: 1,
+  },
+
+  tableCell: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+    minWidth: 100,
+  },
+
+  addRowButton: {
+    backgroundColor: "#2ecc71",
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+
+  addColumnButton: {
+    backgroundColor: "#3498db",
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  tableInput: {
+    flex: 1,
+  },
+  closeButtonTopRight: {
+    position: 'absolute',
+    top: 35,
+    right: 10,
+    backgroundColor: '#e74c3c',
+    padding: 10,
+    borderRadius: 10,
   },
 });
