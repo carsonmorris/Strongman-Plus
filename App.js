@@ -58,6 +58,7 @@ const BodyStatsOverlay = ({ onClose }) => {
   const [columns, setColumns] = useState([{ id: 1, name: 'Date' }]);
   const [rows, setRows] = useState([['']]); // Initialize with an empty cell
   const [newColumnName, setNewColumnName] = useState('');
+  const [showAddButton, setShowAddButton] = useState(false);
 
   const addColumn = () => {
     if (newColumnName.trim() !== '') {
@@ -74,7 +75,6 @@ const BodyStatsOverlay = ({ onClose }) => {
   };
 
   const addRow = () => {
-    // Add a new row with empty cells for each column
     const newRow = columns.map(() => '');
     setRows([...rows, newRow]);
   };
@@ -112,16 +112,20 @@ const BodyStatsOverlay = ({ onClose }) => {
             <View key={rowIndex} style={styles.tableRow}>
               {row.map((cell, cellIndex) => (
                 <View key={cellIndex} style={styles.tableCell}>
-                  <TextInput
-                    style={styles.tableInput}
-                    value={cell}
-                    onChangeText={(text) => {
-                      const updatedRows = [...rows];
-                      updatedRows[rowIndex][cellIndex] = text;
-                      setRows(updatedRows);
-                    }}
-                    placeholder={`Enter value for Column ${cellIndex + 1}`}
-                  />
+                  {rowIndex === rows.length - 1 && showAddButton ? (
+                    <TextInput
+                      style={styles.tableInput}
+                      value={cell}
+                      onChangeText={(text) => {
+                        const updatedRows = [...rows];
+                        updatedRows[rowIndex][cellIndex] = text;
+                        setRows(updatedRows);
+                      }}
+                      placeholder={`Enter value for ${columns[cellIndex].name}`}
+                    />
+                  ) : (
+                    <Text>{cell}</Text>
+                  )}
                 </View>
               ))}
             </View>
