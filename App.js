@@ -1,11 +1,28 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, AsyncStorage } from 'react-native';
+
+//  persistent data
+var workouts = [];
 
 // Workouts overlay component
 const WorkoutsOverlay = ({ onClose }) => {
   const [newButtonName, setNewButtonName] = useState('');
   const [showAddButton, setShowAddButton] = useState(false);
-  const [buttons, setButtons] = useState([]); // Initial buttons
+
+  //  load previous workoutNames
+  _retrieveData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('workoutTitles');
+      if (value !== null) {
+        // We have data!!
+        console.log(value);
+        workouts = value;
+      }
+    } catch (error) {
+      console.log("Failed fetching workout titles.");
+    }
+  };
+  const [buttons, setButtons] = useState(workouts); // Initial buttons
 
   const handleAddButton = () => {
     setShowAddButton(true);
@@ -14,6 +31,20 @@ const WorkoutsOverlay = ({ onClose }) => {
   const handleSaveButton = () => {
     if (newButtonName.trim() !== '') {
       setButtons([...buttons, newButtonName]);
+      workouts.push(newButtonName);
+
+      _storeData = async () => {
+      try {
+        await AsyncStorage.setItem(
+          workoutTitles,
+          workouts,
+        );
+      } catch (error) {
+        console.log("Failed saving workout titles.");
+        console.log(JSON.stringify(workouts));
+      }
+    };
+
       setNewButtonName('');
       setShowAddButton(false);
     }
