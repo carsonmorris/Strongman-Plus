@@ -37,7 +37,8 @@ const WorkoutsOverlay = ({ onClose }) => {
     setShowAddButton(true);
   };
 
-  const handleButtonTap = () => {
+  const handleButtonTap = (buttonText) => {
+    setNewButtonName(buttonText);
     setShowNewOverlay(true);
   };
 
@@ -65,7 +66,7 @@ const WorkoutsOverlay = ({ onClose }) => {
       <Text style={styles.title}>Workouts</Text>
 
       {buttons.map((button, index) => (
-        <TouchableOpacity key={index} style={styles.button} onPress={handleButtonTap}>
+        <TouchableOpacity key={index} style={styles.button} onPress={() => handleButtonTap(button)}>
           <Text style={styles.buttonText}>{button}</Text>
         </TouchableOpacity>
       ))}
@@ -91,7 +92,8 @@ const WorkoutsOverlay = ({ onClose }) => {
         <Text style={styles.buttonText}>Close</Text>
       </TouchableOpacity>
 
-      {showNewOverlay && <NewOverlay onClose={() => setShowNewOverlay(false)} />}
+      {showNewOverlay && <NewOverlay onClose={() => setShowNewOverlay(false)} newButtonName={newButtonName} />}
+
     </View>
   );
 };
@@ -113,21 +115,6 @@ const BodyStatsOverlay = ({ onClose }) => {
   const [newColumnName, setNewColumnName] = useState('');
   const [showAddButton, setShowAddButton] = useState(false);
   const [focusedCell, setFocusedCell] = useState(null);
-
-  const addColumn = () => {
-    if (newColumnName.trim() !== '') {
-      const newColumn = { id: Date.now(), name: newColumnName };
-      setColumns([...columns, newColumn]);
-
-      // Add a new cell for each existing row
-      const updatedRows = rows.map((row) => ({
-        ...row,
-        data: [...row.data, ''],
-        colors: [...row.colors, 'white'],
-      }));
-      setRows(updatedRows);
-    }
-  };
 
   const addRow = () => {
     const newRow = {
@@ -183,7 +170,7 @@ const BodyStatsOverlay = ({ onClose }) => {
                   ]}
                   onPress={() => handleCellTap(rowIndex, cellIndex)}>
                   {focusedCell?.rowIndex === rowIndex &&
-                  focusedCell?.cellIndex === cellIndex ? (
+                    focusedCell?.cellIndex === cellIndex ? (
                     <TextInput
                       style={styles.tableInput}
                       value={cell}
@@ -213,15 +200,128 @@ const BodyStatsOverlay = ({ onClose }) => {
   );
 };
 
-// NewOverlay component for Workouts
-const NewOverlay = ({ onClose }) => {
+var workoutTitles = [
+  { id: 1, name: 'Date' },
+  { id: 2, name: 'Tap To Edit' },
+];
+var workoutData = [
+  { id: 1, data: ['', ''], colors: ['white'] }
+];
+
+// New overlay component
+const NewOverlay = ({ onClose, newButtonName }) => {
+  const [columns, setColumns] = useState(workoutTitles);
+  const [rows, setRows] = useState(workoutData);
+  const [newColumnName, setNewColumnName] = useState('');
+  const [showAddButton, setShowAddButton] = useState(false);
+  const [focusedCell, setFocusedCell] = useState(null);
+
+  const addColumn = () => {
+    if (newColumnName.trim() !== '') {
+      const newColumn = { id: Date.now(), name: newColumnName };
+      setColumns([...columns, newColumn]);
+
+      // Add a new cell for each existing row
+      const updatedRows = rows.map((row) => ({ ...row, data: [...row.data, ''], colors: [...row.colors, 'white'] }));
+      setRows(updatedRows);
+
+      // Clear the input field
+      setNewColumnName('');
+    }
+  };
+
+  const addRow = () => {
+    const newRow = {
+      id: Date.now(),
+      data: columns.map(() => ''),
+      colors: columns.map(() => 'white'),
+    };
+    bodyData.push(newRow);
+    setRows([...rows, newRow]);
+  };
+
+  const handleCellTap = (rowIndex, cellIndex) => {
+    setFocusedCell({ rowIndex, cellIndex });
+  };
+
   return (
     <View style={styles.overlayContainer}>
-      <Text style={styles.title}>New Overlay</Text>
-      {/* Add content of the new overlay here */}
-      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+      <TouchableOpacity style={styles.closeButtonTopRight} onPress={onClose}>
         <Text style={styles.buttonText}>Close</Text>
       </TouchableOpacity>
+
+      <Text style={styles.title}>{newButtonName}</Text>
+
+      <ScrollView horizontal={true} style={styles.scrollView}>
+        <View>
+          {/* Table Header */}
+          <View style={styles.tableRow}>
+            {columns.map((column, columnIndex) => (
+              <View key={column.id} style={styles.tableHeaderCell}>
+                <TextInput
+                  style={styles.columnHeaderInput}
+                  value={column.name}
+                  onChangeText={(text) => {
+                    const updatedColumns = [...columns];
+                    updatedColumns[columnIndex].name = text;
+                    setColumns(updatedColumns);
+                  }}
+                  placeholder={`Column ${columnIndex + 1}`}
+                />
+              </View>
+            ))}
+          </View>
+
+          {/* Table Body */}
+          {rows.map((row, rowIndex) => (
+            <View key={row.id} style={styles.tableRow}>
+              {row.data.map((cell, cellIndex) => (
+                <TouchableOpacity
+                  key={cellIndex}
+                  style={[
+                    styles.tableCell,
+                    { backgroundColor: row.colors[cellIndex] },
+                  ]}
+                  onPress={() => handleCellTap(rowIndex, cellIndex)}>
+                  {focusedCell?.rowIndex === rowIndex &&
+                    focusedCell?.cellIndex === cellIndex ? (
+                    <TextInput
+                      style={styles.tableInput}
+                      value={cell}
+                      onChangeText={(text) => {
+                        const updatedRows = [...rows];
+                        updatedRows[rowIndex].data[cellIndex] = text;
+                        setRows(updatedRows);
+                      }}
+                      placeholder={`Enter value for ${columns[cellIndex].name}`}
+                      autoFocus={true}
+                    />
+                  ) : (
+                    <Text>{cell}</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))}
+
+          {/* Add Row Button */}
+          <TouchableOpacity style={styles.addRowButton} onPress={addRow}>
+            <Text style={styles.buttonText}>+ Add Row</Text>
+          </TouchableOpacity>
+          {/* Add Column Button */}
+        <View style={styles.addContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Column Name"
+            onChangeText={(text) => setNewColumnName(text)}
+            value={newColumnName}
+          />
+          <TouchableOpacity style={styles.addColumnButton} onPress={addColumn}>
+            <Text style={styles.buttonText}>+ Add Column</Text>
+          </TouchableOpacity>
+        </View>
+        </View>
+      </ScrollView>
     </View>
   );
 };
