@@ -115,6 +115,13 @@ const BodyStatsOverlay = ({ onClose }) => {
   const [newColumnName, setNewColumnName] = useState('');
   const [showAddButton, setShowAddButton] = useState(false);
   const [focusedCell, setFocusedCell] = useState(null);
+  const [selectedColor, setSelectedColor] = useState('white');
+
+  const colors = ['red', 'green', 'yellow'];
+
+  const handleChangeColor = (color) => {
+    setSelectedColor(color);
+  };
 
   const addRow = () => {
     const newRow = {
@@ -177,6 +184,7 @@ const BodyStatsOverlay = ({ onClose }) => {
                       onChangeText={(text) => {
                         const updatedRows = [...rows];
                         updatedRows[rowIndex].data[cellIndex] = text;
+                        updatedRows[rowIndex].colors[cellIndex] = selectedColor; // Set the selected color
                         setRows(updatedRows);
                       }}
                       placeholder={`Enter value for ${columns[cellIndex].name}`}
@@ -194,6 +202,21 @@ const BodyStatsOverlay = ({ onClose }) => {
           <TouchableOpacity style={styles.addRowButton} onPress={addRow}>
             <Text style={styles.buttonText}>+ Add Row</Text>
           </TouchableOpacity>
+
+          {/* Color Picker */}
+          <View style={styles.colorPickerContainer}>
+            {colors.map((color) => (
+              <TouchableOpacity
+                key={color}
+                style={[
+                  styles.colorPickerButton,
+                  { backgroundColor: color, borderColor: selectedColor === color ? 'black' : 'transparent' },
+                ]}
+                onPress={() => handleChangeColor(color)}>
+                <Text style={styles.colorPickerButtonText}></Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -215,19 +238,12 @@ const NewOverlay = ({ onClose, newButtonName }) => {
   const [newColumnName, setNewColumnName] = useState('');
   const [showAddButton, setShowAddButton] = useState(false);
   const [focusedCell, setFocusedCell] = useState(null);
+  const [selectedColor, setSelectedColor] = useState('white');
 
-  const addColumn = () => {
-    if (newColumnName.trim() !== '') {
-      const newColumn = { id: Date.now(), name: newColumnName };
-      setColumns([...columns, newColumn]);
+  const colors = ['red', 'green', 'yellow'];
 
-      // Add a new cell for each existing row
-      const updatedRows = rows.map((row) => ({ ...row, data: [...row.data, ''], colors: [...row.colors, 'white'] }));
-      setRows(updatedRows);
-
-      // Clear the input field
-      setNewColumnName('');
-    }
+  const handleChangeColor = (color) => {
+    setSelectedColor(color);
   };
 
   const addRow = () => {
@@ -291,6 +307,7 @@ const NewOverlay = ({ onClose, newButtonName }) => {
                       onChangeText={(text) => {
                         const updatedRows = [...rows];
                         updatedRows[rowIndex].data[cellIndex] = text;
+                        updatedRows[rowIndex].colors[cellIndex] = selectedColor; // Set the selected color
                         setRows(updatedRows);
                       }}
                       placeholder={`Enter value for ${columns[cellIndex].name}`}
@@ -308,18 +325,21 @@ const NewOverlay = ({ onClose, newButtonName }) => {
           <TouchableOpacity style={styles.addRowButton} onPress={addRow}>
             <Text style={styles.buttonText}>+ Add Row</Text>
           </TouchableOpacity>
-          {/* Add Column Button */}
-        <View style={styles.addContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Column Name"
-            onChangeText={(text) => setNewColumnName(text)}
-            value={newColumnName}
-          />
-          <TouchableOpacity style={styles.addColumnButton} onPress={addColumn}>
-            <Text style={styles.buttonText}>+ Add Column</Text>
-          </TouchableOpacity>
-        </View>
+
+          {/* Color Picker */}
+          <View style={styles.colorPickerContainer}>
+            {colors.map((color) => (
+              <TouchableOpacity
+                key={color}
+                style={[
+                  styles.colorPickerButton,
+                  { backgroundColor: color, borderColor: selectedColor === color ? 'black' : 'transparent' },
+                ]}
+                onPress={() => handleChangeColor(color)}>
+                <Text style={styles.colorPickerButtonText}></Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -556,5 +576,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#e74c3c',
     padding: 10,
     borderRadius: 10,
+  },
+  colorPickerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  colorPickerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    margin: 5,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  colorPickerButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
