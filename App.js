@@ -12,7 +12,7 @@ const WorkoutsOverlay = ({ onClose }) => {
   //  load previous workoutNames
   _retrieveData = async () => {
     try {
-      const value = await AsyncStorage.getItem('workoutTitles');
+      const value = await AsyncStorage.getItem('workoutsAsync');
       if (value !== null) {
         // We have data!!
         console.log(value);
@@ -36,7 +36,7 @@ const WorkoutsOverlay = ({ onClose }) => {
       _storeData = async () => {
       try {
         await AsyncStorage.setItem(
-          workoutTitles,
+          workoutsAsync,
           workouts,
         );
       } catch (error) {
@@ -84,10 +84,13 @@ const WorkoutsOverlay = ({ onClose }) => {
   );
 };
 
+var bodyTitles = [{ id: 1, name: 'Date' }, { id: 2, name: 'Weight' }, { id: 3, name: 'SMM' }, { id: 4, name: 'BFM' }];
+var bodyData = [['','','','']];
+
 // BodyStats overlay component
 const BodyStatsOverlay = ({ onClose }) => {
-  const [columns, setColumns] = useState([{ id: 1, name: 'Date' }]);
-  const [rows, setRows] = useState([['']]); // Initialize with an empty cell
+  const [columns, setColumns] = useState(bodyTitles);
+  const [rows, setRows] = useState(bodyData); // Initialize with an empty cell
   const [newColumnName, setNewColumnName] = useState('');
   const [showAddButton, setShowAddButton] = useState(false);
 
