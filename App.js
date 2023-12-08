@@ -16,6 +16,7 @@ var workouts = [];
 const WorkoutsOverlay = ({ onClose }) => {
   const [newButtonName, setNewButtonName] = useState('');
   const [showAddButton, setShowAddButton] = useState(false);
+  const [showNewOverlay, setShowNewOverlay] = useState(false);
 
   //  load previous workoutNames
   _retrieveData = async () => {
@@ -34,6 +35,10 @@ const WorkoutsOverlay = ({ onClose }) => {
 
   const handleAddButton = () => {
     setShowAddButton(true);
+  };
+
+  const handleButtonTap = () => {
+    setShowNewOverlay(true);
   };
 
   const handleSaveButton = () => {
@@ -60,7 +65,7 @@ const WorkoutsOverlay = ({ onClose }) => {
       <Text style={styles.title}>Workouts</Text>
 
       {buttons.map((button, index) => (
-        <TouchableOpacity key={index} style={styles.button}>
+        <TouchableOpacity key={index} style={styles.button} onPress={handleButtonTap}>
           <Text style={styles.buttonText}>{button}</Text>
         </TouchableOpacity>
       ))}
@@ -85,6 +90,8 @@ const WorkoutsOverlay = ({ onClose }) => {
       <TouchableOpacity style={styles.closeButton} onPress={onClose}>
         <Text style={styles.buttonText}>Close</Text>
       </TouchableOpacity>
+
+      {showNewOverlay && <NewOverlay onClose={() => setShowNewOverlay(false)} />}
     </View>
   );
 };
@@ -102,7 +109,7 @@ var bodyData = [
 // BodyStats overlay component
 const BodyStatsOverlay = ({ onClose }) => {
   const [columns, setColumns] = useState(bodyTitles);
-  const [rows, setRows] = useState(bodyData); // Initialize with an empty cell
+  const [rows, setRows] = useState(bodyData);
   const [newColumnName, setNewColumnName] = useState('');
   const [showAddButton, setShowAddButton] = useState(false);
   const [focusedCell, setFocusedCell] = useState(null);
@@ -119,9 +126,6 @@ const BodyStatsOverlay = ({ onClose }) => {
         colors: [...row.colors, 'white'],
       }));
       setRows(updatedRows);
-
-      // Clear the input field
-      setNewColumnName('');
     }
   };
 
@@ -205,19 +209,19 @@ const BodyStatsOverlay = ({ onClose }) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+    </View>
+  );
+};
 
-      {/* Add Column Button */}
-      <View style={styles.addContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Column Name"
-          onChangeText={(text) => setNewColumnName(text)}
-          value={newColumnName}
-        />
-        <TouchableOpacity style={styles.addColumnButton} onPress={addColumn}>
-          <Text style={styles.buttonText}>+ Add Column</Text>
-        </TouchableOpacity>
-      </View>
+// NewOverlay component for Workouts
+const NewOverlay = ({ onClose }) => {
+  return (
+    <View style={styles.overlayContainer}>
+      <Text style={styles.title}>New Overlay</Text>
+      {/* Add content of the new overlay here */}
+      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+        <Text style={styles.buttonText}>Close</Text>
+      </TouchableOpacity>
     </View>
   );
 };
