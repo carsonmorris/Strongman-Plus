@@ -246,6 +246,20 @@ const NewOverlay = ({ onClose, newButtonName }) => {
     setSelectedColor(color);
   };
 
+  const addColumn = () => {
+    if (newColumnName.trim() !== '') {
+      const newColumn = { id: Date.now(), name: newColumnName };
+      setColumns([...columns, newColumn]);
+
+      // Add a new cell for each existing row
+      const updatedRows = rows.map((row) => ({ ...row, data: [...row.data, ''], colors: [...row.colors, 'white'] }));
+      setRows(updatedRows);
+
+      // Clear the input field
+      setNewColumnName('');
+    }
+  };
+
   const addRow = () => {
     const newRow = {
       id: Date.now(),
@@ -325,6 +339,18 @@ const NewOverlay = ({ onClose, newButtonName }) => {
           <TouchableOpacity style={styles.addRowButton} onPress={addRow}>
             <Text style={styles.buttonText}>+ Add Row</Text>
           </TouchableOpacity>
+          {/* Add Column Button */}
+          <View style={styles.addContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter Column Name"
+              onChangeText={(text) => setNewColumnName(text)}
+              value={newColumnName}
+            />
+            <TouchableOpacity style={styles.addColumnButton} onPress={addColumn}>
+              <Text style={styles.buttonText}>+ Add Column</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Color Picker */}
           <View style={styles.colorPickerContainer}>
@@ -340,6 +366,7 @@ const NewOverlay = ({ onClose, newButtonName }) => {
               </TouchableOpacity>
             ))}
           </View>
+
         </View>
       </ScrollView>
     </View>
