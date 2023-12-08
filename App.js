@@ -87,9 +87,10 @@ const WorkoutsOverlay = ({ onClose }) => {
 // BodyStats overlay component
 const BodyStatsOverlay = ({ onClose }) => {
   const [columns, setColumns] = useState([{ id: 1, name: 'Date' }]);
-  const [rows, setRows] = useState([['']]); // Initialize with an empty cell
+  const [rows, setRows] = useState([{ id: 1, data: [''], colors: ['white'] }]); // Initialize with an empty cell
   const [newColumnName, setNewColumnName] = useState('');
   const [showAddButton, setShowAddButton] = useState(false);
+  const [focusedCell, setFocusedCell] = useState(null);
 
   const addColumn = () => {
     if (newColumnName.trim() !== '') {
@@ -97,7 +98,7 @@ const BodyStatsOverlay = ({ onClose }) => {
       setColumns([...columns, newColumn]);
 
       // Add a new cell for each existing row
-      const updatedRows = rows.map((row) => [...row, '']);
+      const updatedRows = rows.map((row) => ({ ...row, data: [...row.data, ''], colors: [...row.colors, 'white'] }));
       setRows(updatedRows);
 
       // Clear the input field
@@ -106,8 +107,16 @@ const BodyStatsOverlay = ({ onClose }) => {
   };
 
   const addRow = () => {
-    const newRow = columns.map(() => '');
+    const newRow = {
+      id: Date.now(),
+      data: columns.map(() => ''),
+      colors: columns.map(() => 'white'),
+    };
     setRows([...rows, newRow]);
+  };
+
+  const handleCellTap = (rowIndex, cellIndex) => {
+    setFocusedCell({ rowIndex, cellIndex });
   };
 
   return (
@@ -140,24 +149,29 @@ const BodyStatsOverlay = ({ onClose }) => {
 
           {/* Table Body */}
           {rows.map((row, rowIndex) => (
-            <View key={rowIndex} style={styles.tableRow}>
-              {row.map((cell, cellIndex) => (
-                <View key={cellIndex} style={styles.tableCell}>
-                  {rowIndex === rows.length - 1 && showAddButton ? (
+            <View key={row.id} style={styles.tableRow}>
+              {row.data.map((cell, cellIndex) => (
+                <TouchableOpacity
+                  key={cellIndex}
+                  style={[styles.tableCell, { backgroundColor: row.colors[cellIndex] }]}
+                  onPress={() => handleCellTap(rowIndex, cellIndex)}
+                >
+                  {focusedCell?.rowIndex === rowIndex && focusedCell?.cellIndex === cellIndex ? (
                     <TextInput
                       style={styles.tableInput}
                       value={cell}
                       onChangeText={(text) => {
                         const updatedRows = [...rows];
-                        updatedRows[rowIndex][cellIndex] = text;
+                        updatedRows[rowIndex].data[cellIndex] = text;
                         setRows(updatedRows);
                       }}
                       placeholder={`Enter value for ${columns[cellIndex].name}`}
+                      autoFocus={true}
                     />
                   ) : (
                     <Text>{cell}</Text>
                   )}
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           ))}
@@ -368,7 +382,7 @@ const styles = StyleSheet.create({
   },
 
   tableCell: {
-    padding: 10,
+    paddingVertical: 20,
     borderBottomWidth: 1,
     borderColor: "#ccc",
     minWidth: 100,
@@ -389,6 +403,7 @@ const styles = StyleSheet.create({
   },
   tableInput: {
     flex: 1,
+    height: 40,
   },
   closeButtonTopRight: {
     position: 'absolute',
