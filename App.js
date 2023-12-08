@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, AsyncStorage } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  AsyncStorage,
+} from 'react-native';
 
 //  persistent data
 var workouts = [];
@@ -19,7 +27,7 @@ const WorkoutsOverlay = ({ onClose }) => {
         workouts = value;
       }
     } catch (error) {
-      console.log("Failed fetching workout titles.");
+      console.log('Failed fetching workout titles.');
     }
   };
   const [buttons, setButtons] = useState(workouts); // Initial buttons
@@ -34,16 +42,13 @@ const WorkoutsOverlay = ({ onClose }) => {
       workouts.push(newButtonName);
 
       _storeData = async () => {
-      try {
-        await AsyncStorage.setItem(
-          workoutsAsync,
-          workouts,
-        );
-      } catch (error) {
-        console.log("Failed saving workout titles.");
-        console.log(JSON.stringify(workouts));
-      }
-    };
+        try {
+          await AsyncStorage.setItem(workoutsAsync, workouts);
+        } catch (error) {
+          console.log('Failed saving workout titles.');
+          console.log(JSON.stringify(workouts));
+        }
+      };
 
       setNewButtonName('');
       setShowAddButton(false);
@@ -84,8 +89,15 @@ const WorkoutsOverlay = ({ onClose }) => {
   );
 };
 
-var bodyTitles = [{ id: 1, name: 'Date' }, { id: 2, name: 'Weight' }, { id: 3, name: 'SMM' }, { id: 4, name: 'BFM' }];
-var bodyData = [['','','','']];
+var bodyTitles = [
+  { id: 1, name: 'Date' },
+  { id: 2, name: 'Weight' },
+  { id: 3, name: 'SMM' },
+  { id: 4, name: 'BFM' },
+];
+var bodyData = [
+  { id: 1, data: ['', '', '', ''], colors: ['white'] }
+];
 
 // BodyStats overlay component
 const BodyStatsOverlay = ({ onClose }) => {
@@ -93,6 +105,7 @@ const BodyStatsOverlay = ({ onClose }) => {
   const [rows, setRows] = useState(bodyData); // Initialize with an empty cell
   const [newColumnName, setNewColumnName] = useState('');
   const [showAddButton, setShowAddButton] = useState(false);
+  const [focusedCell, setFocusedCell] = useState(null);
 
   const addColumn = () => {
     if (newColumnName.trim() !== '') {
@@ -100,7 +113,11 @@ const BodyStatsOverlay = ({ onClose }) => {
       setColumns([...columns, newColumn]);
 
       // Add a new cell for each existing row
-      const updatedRows = rows.map((row) => [...row, '']);
+      const updatedRows = rows.map((row) => ({
+        ...row,
+        data: [...row.data, ''],
+        colors: [...row.colors, 'white'],
+      }));
       setRows(updatedRows);
 
       // Clear the input field
@@ -109,8 +126,17 @@ const BodyStatsOverlay = ({ onClose }) => {
   };
 
   const addRow = () => {
-    const newRow = columns.map(() => '');
+    const newRow = {
+      id: Date.now(),
+      data: columns.map(() => ''),
+      colors: columns.map(() => 'white'),
+    };
+    bodyData.push(newRow);
     setRows([...rows, newRow]);
+  };
+
+  const handleCellTap = (rowIndex, cellIndex) => {
+    setFocusedCell({ rowIndex, cellIndex });
   };
 
   return (
@@ -143,24 +169,32 @@ const BodyStatsOverlay = ({ onClose }) => {
 
           {/* Table Body */}
           {rows.map((row, rowIndex) => (
-            <View key={rowIndex} style={styles.tableRow}>
-              {row.map((cell, cellIndex) => (
-                <View key={cellIndex} style={styles.tableCell}>
-                  {rowIndex === rows.length - 1 && showAddButton ? (
+            <View key={row.id} style={styles.tableRow}>
+              {row.data.map((cell, cellIndex) => (
+                <TouchableOpacity
+                  key={cellIndex}
+                  style={[
+                    styles.tableCell,
+                    { backgroundColor: row.colors[cellIndex] },
+                  ]}
+                  onPress={() => handleCellTap(rowIndex, cellIndex)}>
+                  {focusedCell?.rowIndex === rowIndex &&
+                  focusedCell?.cellIndex === cellIndex ? (
                     <TextInput
                       style={styles.tableInput}
                       value={cell}
                       onChangeText={(text) => {
                         const updatedRows = [...rows];
-                        updatedRows[rowIndex][cellIndex] = text;
+                        updatedRows[rowIndex].data[cellIndex] = text;
                         setRows(updatedRows);
                       }}
                       placeholder={`Enter value for ${columns[cellIndex].name}`}
+                      autoFocus={true}
                     />
                   ) : (
                     <Text>{cell}</Text>
                   )}
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           ))}
@@ -230,30 +264,47 @@ export default function App() {
       {showBodyStats && <BodyStatsOverlay onClose={handleClose} />}
 
       {showHelp && (
-
         <View style={styles.overlayContainer}>
           <Text style={styles.title}>Welcome to Strongman+</Text>
           <Text style={styles.subtitle}>Getting Started</Text>
-          <Text>Thank you for choosing Strongman+ to be your fitness companion! Whether you're a seasoned gym-goer or just starting your fitness journey. Below, we'll guide you through the key features and functionalities of the app.</Text>
+          <Text>
+            Thank you for choosing Strongman+ to be your fitness companion!
+            Whether you're a seasoned gym-goer or just starting your fitness
+            journey. Below, we'll guide you through the key features and
+            functionalities of the app.
+          </Text>
 
           <Text style={styles.sectionTitle}>Main Screen</Text>
-          <Text>Upon launching Strongman+, you'll find two main buttons. Workouts: Navigate here to create and track your workout routines. Body Stats: Track your body stats and input valuable information about your fitness journey.</Text>
+          <Text>
+            Upon launching Strongman+, you'll find two main buttons. Workouts:
+            Navigate here to create and track your workout routines. Body Stats:
+            Track your body stats and input valuable information about your
+            fitness journey.
+          </Text>
 
           <Text style={styles.sectionTitle}>Body Stats</Text>
-          <Text>When you select "Body Stats," you can log various weights, the current date, and other relevant information. Tap on cells to change their color, indicating improvement or areas that need attention.</Text>
+          <Text>
+            When you select "Body Stats," you can log various weights, the
+            current date, and other relevant information. Tap on cells to change
+            their color, indicating improvement or areas that need attention.
+          </Text>
 
           <Text style={styles.sectionTitle}>Workouts</Text>
-          <Text>The "Workouts" menu lets you track different types of exercises. You can create custom buttons for your workout categories, such as Back/Arms, Legs, Chest/Shoulders, etc. Each button links to a new, customizable spreadsheet for tracking your progress. Again, tap on cells to change their color, indicating improvement or areas that need attention.</Text>
+          <Text>
+            The "Workouts" menu lets you track different types of exercises. You
+            can create custom buttons for your workout categories, such as
+            Back/Arms, Legs, Chest/Shoulders, etc. Each button links to a new,
+            customizable spreadsheet for tracking your progress. Again, tap on
+            cells to change their color, indicating improvement or areas that
+            need attention.
+          </Text>
 
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
             <Text style={styles.buttonText}>Close</Text>
           </TouchableOpacity>
         </View>
-
       )}
-
-
-    </View >
+    </View>
   );
 }
 
@@ -353,45 +404,46 @@ const styles = StyleSheet.create({
   },
 
   tableRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
 
   tableHeaderCell: {
     flex: 1,
     padding: 10,
     borderBottomWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#f2f2f2",
+    borderColor: '#ccc',
+    backgroundColor: '#f2f2f2',
     minWidth: 100, // Adjust the minWidth as needed
   },
 
   tableHeaderText: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
     flex: 1,
   },
 
   tableCell: {
-    padding: 10,
+    paddingVertical: 20,
     borderBottomWidth: 1,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
     minWidth: 100,
   },
 
   addRowButton: {
-    backgroundColor: "#2ecc71",
+    backgroundColor: '#2ecc71',
     padding: 10,
     borderRadius: 10,
     marginTop: 10,
   },
 
   addColumnButton: {
-    backgroundColor: "#3498db",
+    backgroundColor: '#3498db',
     padding: 10,
     borderRadius: 10,
     marginTop: 10,
   },
   tableInput: {
     flex: 1,
+    height: 40,
   },
   closeButtonTopRight: {
     position: 'absolute',
