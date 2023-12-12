@@ -1,7 +1,7 @@
-Strongman+
+# Strongman+
 
-CS 402 Final Project - A Fitness Tracking App
+A Fitness Tracking App
 
-Contributors:
+# Contributors:
 - Carson Morris
 - Zane Miller
